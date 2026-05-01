@@ -241,7 +241,7 @@ A language model should not be trusted to multiply numbers. It should be trusted
 
 ---
 
-## 🧠 My Development Journey
+## 🧠 How I Used AI to Build These Projects
 
 ### Task 1 – Portfolio Risk Calculator
 
@@ -470,7 +470,7 @@ Verdict: Aggressive
 
 ## 🙏 Acknowledgements
 
-- **Google Gemini** for generous free tier and fast inference.
-- **Claude** for helping structure the project and debug tricky API integrations.
+- **Google Gemini (AntiGravity Tool)** for generous free tier and fast inference.
+- **Claude (AntiGravity Tool)** for helping structure the project and debug tricky API integrations.
 - **DeepSeek & ChatGPT** for rapid prototyping and edge‑case discovery.
 - **Timecell** for a thoughtfully designed assessment that mirrors real startup engineering.
