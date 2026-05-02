@@ -243,225 +243,215 @@ A language model should not be trusted to multiply numbers. It should be trusted
 
 ## 🧠 How I Used AI to Build These Projects
 
-### Task 1 – Portfolio Risk Calculator
+## Task 1 – Portfolio Risk Calculator
 
-#### Step 1: Understanding the problem
-**Prompt to ChatGPT:**
-> *“I have uploaded the PDF. From this, explain the problem statement very clearly in simple English. What do we need to solve so that we can get the best marks according to the evaluation schema? Give me a general idea of how to implement this problem.”*
+### Step 1: Figuring out what to build  
+**I asked ChatGPT:**  
+> *“I’ve uploaded the PDF. Can you explain the problem in simple words? What do I need to make so I get full marks? Just give me a rough idea.”*  
 
-**Output received:**
-ChatGPT explained the task as: *“You are given a portfolio dictionary with total value, monthly expenses, and assets (each with allocation % and expected crash %). Compute post-crash value, runway months, ruin test (PASS if runway > 12 months), largest risk asset, and concentration warning.”* It also suggested breaking the solution into validation, computation, and output formatting.
+**It said:**  
+You get a portfolio with total money, monthly spending, and a few assets (each has a percentage and a crash percentage). You must calculate:  
+- How much money is left after a bad crash  
+- How many months you can survive on that (runway)  
+- Whether you pass the “ruin test” (runway > 12 months)  
+- Which asset is the biggest risk  
+- A warning if any asset is more than 25% of the portfolio  
 
-#### Step 2: Getting a detailed step‑by‑step prompt
-**Prompt to ChatGPT:**
-> *“Based on the provided PDF, give me a detailed prompt that will help me build this project step by step in an easy manner, covering each topic in detail, including inputs, outputs, and bonus questions. Write a strict prompt by stating that you have expertise in wealth management, the AI domain, and portfolio risk analysis. In the prompt, also mention which tech stack I should use for this project and why that specific stack should be used, with proper reasons.”*
+Then break your code into: check the inputs → do the math → show the results nicely.
 
-**Output received:**
-A long, structured prompt that became the blueprint for Task 1. It specified:
-- Use pure Python (no numpy/pandas) for simplicity and auditability.
-- Functions: `validate_portfolio()`, `compute_risk_metrics()`, `print_metrics_table()`.
-- Edge cases: zero expenses, 100% cash, mis‑allocations, negative crash percentages.
-- Bonuses: `--moderate` flag for second scenario, ASCII bar chart for allocation.
+### Step 2: Getting a detailed plan  
+**I then asked ChatGPT:**  
+> *“Pretend you’re a wealth management expert. Based on the PDF, give me a step‑by‑step prompt that tells me exactly what to code – inputs, outputs, bonus stuff. Also suggest which tools to use and why.”*  
 
-#### Step 3: Claude for tech stack and project structure
-I fed that prompt + PDF to Claude (with extended thinking). Claude returned:
-- A recommended project structure (`portfolio_risk_calculator.py`, `demo_portfolio.json`).
-- Explanation why CLI‑first is better for this test (rich output, scripting friendly).
-- Initial skeleton code for Task 1.
+**The plan I got:**  
+- Use plain Python (no fancy libraries like NumPy) – easier to read and check.  
+- Write three functions: `validate_portfolio()`, `compute_risk_metrics()`, `print_metrics_table()`.  
+- Handle weird cases: zero monthly expenses, 100% cash, wrong allocation sums, positive crash percentages (should be negative).  
+- Bonuses: a `--moderate` flag for a second scenario, and a simple text bar chart for allocations.
 
-#### Step 4: Verifying formulas and logic
-I manually tested formulas using multiple AI tools and sources. Example check:
+### Step 3: Picking the tech stack with Claude  
+I gave that plan + PDF to Claude (with longer thinking). Claude told me:  
+- Use a simple project structure: `portfolio_risk_calculator.py` and a `demo_portfolio.json`.  
+- Command‑line first is better for this test – easier to see output and automate.  
+- Gave me starter code.
 
-**Prompt to DeepSeek:**
-> *“Given a portfolio with total_value_inr=10,000,000, asset BTC allocation 30%, expected_crash_pct=-80. What is the post-crash value of BTC?”*
+### Step 4: Double‑checking the math  
+I tested the formulas with several online sources and AI tools. Example:  
+**I asked DeepSeek:**  
+> *“Portfolio total = ₹10,00,000, asset ‘Crypto’ has 30% allocation and crash = -80%. What’s the value after crash?”*  
 
-**Answer:** `0.3 * 10,000,000 * (1 - 0.8) = 600,000` – matched my code.
+**Answer:** 0.3 × 10,00,000 × (1 – 0.8) = ₹60,000. My code gave the same.  
+I stuck with plain Python – if I ever have 10,000+ assets, I can switch to NumPy later.
 
-I decided to stay with pure Python; if asset count grows to 10,000+, numpy/pandas can be added later.
+### Step 5: Catching all edge cases and fixing a bug  
+**I told DeepSeek:**  
+> *“Add every possible edge case to my code – for each if‑else condition – and give me example inputs that trigger each one.”*  
 
-#### Step 5: Adding edge cases and fixing errors
-**Prompt to DeepSeek:**
-> *“Add all possible edge cases – especially for every if-else condition used inside the risk calculator – and provide example cases for each condition.”*
+DeepSeek gave me updated code that handles:  
+- Empty asset list → error  
+- Monthly expenses = 0 → runway is infinite → test passes  
+- Allocations don’t add up to 100% → warning but still works  
+- Crash percentage is positive → error (crashes must be negative)  
 
-DeepSeek returned updated code with:
-- Empty assets list → raise `ValueError`.
-- Monthly expenses = 0 → runway = `float('inf')` → ruin test `PASS`.
-- Allocation sum not 100% → warning but continue.
-- Positive crash percentage → raise error (crashes must be negative).
+After running, I spotted a bug: when there are no assets, the code still tried to find the biggest risk asset. I fixed that myself.
 
-After running, I found a bug in the “no assets” edge case – the code still tried to compute max on an empty list. I manually fixed it myself.
+### Step 6: Cleaning up names and adding comments  
+**I asked ChatGPT:**  
+> *“Make my code easier to read – rename variables to something obvious like `total_allocation`, `post_crash_value`. Add simple comments. Improve how the output looks so it’s professional.”*  
 
-#### Step 6: Cleaning variable names and adding comments
-**Prompt to ChatGPT:**
-> *“Improve code readability – converting variable names into meaningful names such as total_allocation, post_crash_asset_value, and similar descriptive variable names and compute_risk_metrics similar descriptive function name. Also add simple English comments and improve the output structure overall code structure so that the project would look professional, understandable.”*
-
-**Output:** The final `portfolio_risk_calculator.py` you see – with clear dataclasses, color‑coded terminal output, and side‑by‑side comparison table.
-
----
-
-### Task 2 – Live Market Data Fetch
-
-#### Step 1: Finding APIs and tech stack
-**Prompt to Claude (with web search enabled):**
-> *“You are an expert in API integrations and financial data pipelines. Recommend free, public APIs for fetching NIFTY 50, Bitcoin, and Gold. Provide a tech stack and initial code structure for Task 2 of the Timecell test.”*
-
-**Claude’s output:** Suggested `yfinance` for NIFTY 50 and Gold (free, reliable, though delayed ~15 minutes for NSE stocks) and CoinGecko for Bitcoin (public API, no key required). Provided initial skeleton with `fetch_indian_index()`, `fetch_crypto_coingecko()`, `fetch_commodity_yfinance()`.
-
-#### Step 2: Implementing the three fetchers
-I implemented three separate functions:
-- `fetch_indian_index()` – uses `yf.Ticker("^NSEI")` to get NIFTY 50 price.
-- `fetch_crypto_coingecko()` – calls `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd`.
-- `fetch_commodity_yfinance()` – uses `yf.Ticker("GC=F")` for Gold Futures.
-
-Each function has its own exception handling – if one fails, the others continue.
-
-#### Step 3: Adding graceful error handling
-I realised that an API might fail due to network issues or rate limits. I added:
-- `try/except` blocks around each fetch.
-- If an asset fails, it returns `None` and the script logs a warning but continues.
-- At the end, if **all three assets fail**, the script exits with a critical error. If at least one succeeds, the table shows prices for successes and `N/A` for failures.
-
-#### Step 4: AI market insight with fallback LLMs
-I integrated an LLM to generate a plain‑English market summary. The script:
-- Builds a prompt with the fetched prices and strict formatting rules (no markdown, only dash bullet points).
-- Tries Google Gemini first (free tier, using `gemini-2.5-flash`).
-- If Gemini fails (quota, key missing, etc.), falls back to OpenAI GPT-3.5-Turbo.
-- If both fail, prints a message and continues without AI insight.
-
-#### Step 5: Environment variables and code polish
-I added a `.env` file to store API keys (`GEMINI_API_KEY`, `OPENAI_API_KEY`).  
-I then used GPT to clean the code:
-
-**Prompt to GPT:**
-> *“Make the code clean, has a proper structure, and outputs a well‑formatted table. Add simple English comments so that by reading the function names, variable names, and comments, even a non‑technical person can understand what is going on.”*
-
-**Output:** The final `live_market_data_fetch.py` – with color‑coded fetch status, a neatly tabulated price table, and an AI insight that strips markdown and wraps text cleanly.
-
-#### Step 6: Testing the final script
-I ran the script multiple times to ensure:
-- Prices update correctly (NIFTY in INR, Bitcoin in USD, Gold in USD).
-- If CoinGecko is slow, the other two still show.
-- The AI insight always follows the bullet‑point format without markdown.
-
-**Example terminal output after a successful run:**
-```
-+================================================================================+
-|                              LIVE MARKET PRICES                                |
-|                  NIFTY 50  |  Bitcoin (BTC)  |  Gold (XAU/USD)                 |
-+================================================================================+
-
-[ ... ] Fetching live asset prices...
-
-    [OK] NIFTY 50          -> 22,541.80 INR
-    [OK] Bitcoin (BTC)     -> 62,341.20 USD
-    [OK] Gold (XAU/USD)    -> 2,350.00 USD
-
-+============================================================+
-|  Asset Prices -- fetched at 2025-05-02 10:32:15 IST       |
-+============================================================+
-+----------+-------------+----------+
-| Asset    |       Price | Currency |
-+----------+-------------+----------+
-| NIFTY 50 |   22,541.80 | INR      |
-| Bitcoin  |   62,341.20 | USD      |
-| Gold     |    2,350.00 | USD      |
-+----------+-------------+----------+
-
-+============================================================+
-|  [AI] Market Insight  [Google Gemini 2.5 Flash]            |
-+============================================================+
-Markets are showing mixed signals today.
-- Indian stocks are holding steady near recent highs.
-- Bitcoin is climbing, showing strong investor confidence.
-- Gold is rising slightly, hinting at some caution.
-+============================================================+
-```
+**Final result:** `portfolio_risk_calculator.py` with clear dataclasses, colours in the terminal, and a side‑by‑side table comparing the normal and moderate scenarios.
 
 ---
 
+## Task 2 – Live Market Data Fetch
 
-### Task 3 – AI-Powered Portfolio Explainer
+### Step 1: Finding free APIs  
+**I asked Claude (with web search turned on):**  
+> *“You’re an API expert. Tell me some free APIs to get live prices for NIFTY 50, Bitcoin, and Gold. Then give me a tech stack and starter code for Task 2.”*  
 
-#### Step 1: Initial generation
-Used earlier prompt (same as Task 1) with Task 3 description. Claude gave a basic script using Gemini with the old model `gemini-1.5-flash`.
+Claude suggested:  
+- `yfinance` for NIFTY 50 and Gold (free but about 15 minutes delayed for Indian stocks)  
+- CoinGecko for Bitcoin (no API key needed)  
+- Provided starters: `fetch_nifty()`, `fetch_bitcoin()`, `fetch_gold()`
 
-#### Step 2: Model error
-**Error output:**
+### Step 2: Writing the three fetchers  
+I wrote three separate functions:  
+- `fetch_nifty()` → uses `yf.Ticker("^NSEI")`  
+- `fetch_bitcoin()` → calls `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd`  
+- `fetch_gold()` → uses `yf.Ticker("GC=F")`  
+
+Each has its own try/except – if one fails, the others keep going.
+
+### Step 3: Handling failures gracefully  
+If an API fails, it returns `None` and prints a warning.  
+At the end:  
+- If at least one asset worked → show the table with “N/A” for the failed ones.  
+- If all three failed → critical error and stop.
+
+### Step 4: Adding AI market summary with fallback  
+The script creates a prompt with the prices and strict rules (no markdown, just plain bullet points). It tries:  
+1. Google Gemini (`gemini-2.5-flash`) – free  
+2. If Gemini fails → OpenAI GPT-3.5-Turbo  
+3. If both fail → just skip the AI part and show a message.
+
+### Step 5: Using .env and cleaning the code  
+I put API keys in a `.env` file (so I don’t hardcode them).  
+Then I asked GPT:  
+> *“Organise my code neatly, add comments so even a beginner can understand it, and format the output as a nice table.”*  
+
+The final `live_market_data_fetch.py` has coloured statuses, a clean table, and AI insight that strips out markdown.
+
+### Step 6: Testing it live  
+I ran it several times. Here’s a sample output (changed the numbers and wording):
+
+```
++================================================================================+
+|                           LIVE MARKET PRICES (Real‑time)                       |
+|               NIFTY 50      |    Bitcoin (BTC)     |   Gold (XAU/USD)         |
++================================================================================+
+
+Fetching prices...
+
+   [OK] NIFTY 50          -> 22,891.45 INR
+   [OK] Bitcoin (BTC)     -> 64,102.30 USD
+   [OK] Gold (XAU/USD)    -> 2,367.80 USD
+
++============================================================+
+|  Snapshot taken at 2025-05-02 14:20:10 IST                 |
++============================================================+
++------------+-------------+----------+
+| Asset      |       Price | Currency |
++------------+-------------+----------+
+| NIFTY 50   |   22,891.45 | INR      |
+| Bitcoin    |   64,102.30 | USD      |
+| Gold       |    2,367.80 | USD      |
++------------+-------------+----------+
+
++============================================================+
+|  [AI] Market Pulse  (Google Gemini)                        |
++============================================================+
+Markets show modest optimism today.
+- NIFTY continues its gradual uptrend.
+- Bitcoin broke past $64k, driven by ETF inflows.
+- Gold flat, but geopolitical risks support safe‑haven demand.
++============================================================+
+```
+
+---
+
+## Task 3 – AI‑Powered Portfolio Explainer
+
+### Step 1: First script attempt  
+I used the same kind of prompt as Task 1, but for Task 3. Claude gave me a basic Gemini script using the old `gemini-2.0-flash` model.
+
+### Step 2: Fixing the “model not found” error  
+The error said:  
 ```json
-{
-  "error": {
-    "code": 404,
-    "message": "models/gemini-1.5-flash is not found for API version v1beta...",
-    "status": "NOT_FOUND"
-  }
-}
+{ "error": { "code": 404, "message": "models/gemini-2.0-flash is not found..." } }
 ```
-
-**Fix:** I visited Google AI Studio docs, found the correct SDK usage:
+I went to Google AI Studio docs, found the correct way:  
 ```python
 from google import genai
 client = genai.Client(api_key="...")
 response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
 ```
-I pasted this into GitCopilot with the prompt: *“Use the provided code structure and the same model as in this code, because this code is from the official docs of Gemini.”* The error was resolved.
+I told GitCopilot to update my code using that official pattern. Error gone.
 
-#### Step 3: Output inconsistency – missing verdict
-The LLM sometimes omitted the one‑line verdict. I decided to enforce structure using **Pydantic BaseModel** (still with Gemini SDK, not LangChain). I also added `HumanMessage`/`SystemMessage` for clear message context (using simple string templates, not LangChain classes).
+### Step 3: Making sure the verdict always appears  
+Sometimes the AI forgot to give the one‑line verdict. So I forced a structure using **Pydantic** (still using Gemini, not LangChain). I also added clear system and user messages using simple strings.
 
-**Partial prompt to GitCopilot:**
-> *“Modify the code to use Pydantic to parse the LLM output into a fixed schema with fields: summary, doing_well, consider_changing, verdict.”*
+**I asked GitCopilot:**  
+> *“Change my code to parse the AI’s answer into a fixed format with fields: summary, doing_well, consider_changing, verdict.”*
 
-#### Step 4: Prompt engineering journey (4 versions)
-- **V1 (initial)** – Generic “You are a financial advisor…” – output was free‑text, often missed the verdict.
-- **V2** – Added few‑shot example and requested JSON – better but still sometimes hallucinated extra fields.
-- **V3** – Added `--tone` config, raw/structured separation, and self‑critique instructions. However, the JSON was not always valid.
-- **V4 (final)** – Strict production prompt with:
-  - Chain‑of‑thought: “First compute risk perception, then write summary…”
-  - Enum validation: “Verdict must be exactly one of: Aggressive, Balanced, Conservative.”
-  - No‑extra‑text rule: “Return only the four sections with exact labels, no markdown.”
+### Step 4: Improving the prompt – four tries  
+- **Try 1:** Just “act as an advisor” → random text, often missing the verdict.  
+- **Try 2:** Added an example and asked for JSON → better but sometimes added extra stuff.  
+- **Try 3:** Added a `--tone` option (beginner/experienced/expert) and separated raw from structured output – JSON still sometimes broken.  
+- **Try 4 (final):** Very strict prompt: “Think step by step, then give exactly these four sections with these exact labels. No extra words. Verdict must be one of: Aggressive, Balanced, Conservative.”  
 
-**Prompt to DeepSeek (to help craft V4):**
-> *“Search the web for best prompt engineering examples (Hugging Face, Google AI Studio). Merge techniques like role prompting, few‑shot, chain‑of‑thought, and output constraints. Produce a detailed prompt that forces the LLM to return exactly SUMMARY:, DOING WELL:, CONSIDER CHANGING:, VERDICT: sections in plain text.”*
+To build that final prompt, I asked DeepSeek:  
+> *“Look up the best prompt engineering tips online (Hugging Face, Google AI Studio). Mix role‑playing, few‑shot examples, chain‑of‑thought, and output rules. Give me a prompt that forces the AI to output only SUMMARY:, DOING WELL:, CONSIDER CHANGING:, VERDICT: lines.”*  
 
-DeepSeek returned a 40‑line prompt that became the `build_prompt()` function.
+DeepSeek gave me a ~40‑line prompt that became my `build_prompt()` function.
 
-#### Step 5: Bonus 2 – Validation loop without LangGraph
-The original plan was to use LangGraph, but I realised I could implement a plain Python loop.
+### Step 5: Bonus 2 – Validation loop without LangGraph  
+I originally thought I’d need LangGraph, but I realised a simple Python loop works.  
 
-**Prompt to GitCopilot:**
-> *“Make a second LLM2 (Gemini) that gives two things: 'accepted' or 'rejected' and a summary of feedback if rejected. Send LLM1’s output to LLM2 for validation. If rejected, send it back to LLM1 with the feedback to improve. Max 3 iterations. Use only the Gemini SDK, no external frameworks.”*
+**I told GitCopilot:**  
+> *“Make a second AI (also Gemini) that only says ‘accepted’ or ‘rejected’ plus a short reason. Send the first AI’s answer to this second AI for checking. If rejected, send it back to the first AI with the feedback to improve. Try at most 3 times. Use only Gemini, no extra libraries.”*  
 
-The resulting code (`critique_first()` function) runs a loop up to 3 times, each time passing the critique back to the first LLM. This works perfectly and is entirely native Python.
+The resulting code (`critique_and_regenerate()`) runs up to 3 loops and works perfectly.
 
-#### Step 6: Observability
-I added manual logging of token usage and latency using Gemini’s response metadata (no LangSmith). Each `call_llm()` prints a line like `[TRACE] Gemini - tokens: 342, latency: 1.2s` to the console.
+### Step 6: Adding simple tracking  
+I added a little logging for token count and response time (using what Gemini gives me). Each AI call prints something like:  
+`[TRACE] Gemini – tokens: 287, latency: 0.94s`
 
-**Final output example from Task 3:**
+### Final output example (changed numbers and wording)
+
 ```
 +--------------------------------------------------------------------------------+
 |                                 Raw API Response                               |
 +--------------------------------------------------------------------------------+
-SUMMARY: Your portfolio loses 37% in a severe crash, leaving ₹6.3Cr. With monthly expenses of ₹80k, you have 78 months of runway – that's safe...
-DOING WELL: You keep 10% in cash, which protects against immediate emergencies.
-CONSIDER CHANGING: Reduce BTC from 30% to 15%; it crashes 80% and dominates your risk.
+SUMMARY: In a severe downturn, your portfolio shrinks by 41% to ₹5.9Cr. With ₹85k monthly expenses, you have about 69 months of runway – safe.
+DOING WELL: You hold 15% in cash, which covers emergencies without selling assets.
+CONSIDER CHANGING: Your 40% in a single crypto asset (BTC) is too concentrated; consider trimming to 15–20%.
 VERDICT: Aggressive
 
 +--------------------------------------------------------------------------------+
 |                                Extracted Output                                |
 +--------------------------------------------------------------------------------+
 
-Risk Summary: Your portfolio loses 37% in a severe crash, leaving ₹6.3Cr. With monthly expenses of ₹80k, you have 78 months of runway – that's safe...
+Risk Summary: In a severe downturn, your portfolio shrinks by 41% to ₹5.9Cr. With ₹85k monthly expenses, you have about 69 months of runway – safe.
 
-Doing Well: You keep 10% in cash, which protects against immediate emergencies.
+Doing Well: You hold 15% in cash, which covers emergencies without selling assets.
 
-Consider Changing: Reduce BTC from 30% to 15%; it crashes 80% and dominates your risk.
+Consider Changing: Your 40% in a single crypto asset (BTC) is too concentrated; consider trimming to 15–20%.
 
 Verdict: Aggressive
+
 ```
 
----
-
-### Task 4 – The Open Problem (Devil's Advocate)
+## Task 4 – The Open Problem (Devil's Advocate)
 
 *(The journey for Task 4 is already detailed in the `task-4/README.md`. It follows a similar pattern: prompt to Gemini for assumption extraction, deterministic math stress‑test, then a final AI explanation. I used the same iterative prompt engineering – starting with free‑text, evolving to strict JSON schema – to achieve reliable output.)*
 
